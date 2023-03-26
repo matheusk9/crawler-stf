@@ -1,8 +1,21 @@
 import requests
 from bs4 import BeautifulSoup
+import hashlib
 
-data_inicial = "2022-12-13"
-data_final = "2022-12-25"
+
+def gerar_md5(link_pdf):
+    lista_hash = []
+    response = requests.get(link_pdf, headers=user_agent)
+    pdf_content = response.content
+
+    md5_hash = hashlib.md5(pdf_content).hexdigest()
+    lista_hash.append(md5_hash)
+    return print(lista_hash)
+
+
+data = input()
+data_inicial = data
+data_final = data
 
 url = f'https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&dataInicial={data_inicial}&dataFinal={data_final}&tipoPesquisaDJ=&argumento='
 
@@ -12,11 +25,7 @@ user_agent = {'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebK
 
 response = requests.get(url, headers = user_agent)
 
-# obtem o html da pagina
-html = response.content
-
-
-soup = BeautifulSoup(html, 'html.parser')
+soup = BeautifulSoup(response.content, 'html.parser')
 
 
 # pega as listas com os links
@@ -30,7 +39,19 @@ for link in listas:
     url_DJe.append('https://portal.stf.jus.br/servicos/dje/'+str(links_DJe))
 
 
-# fazendo requisição dos links
+pdf_url = []
+# iterando pelos links da lista
 for link in url_DJe:
     response_processo = requests.get(link, headers=user_agent)
-    print(f'link:{link} code:{response_processo.status_code}')
+    
+    soup_processo = BeautifulSoup(response_processo.content, 'html.parser')
+    pdf_links = soup_processo.find_all('a', {'target': '_blank'})
+
+    for pdf_link in pdf_links:
+        if 'Integral' in pdf_link.text:
+            pdf_url.append( 'https://portal.stf.jus.br'+str(pdf_link['href']) )
+        else:
+           pass
+
+for link in pdf_url:
+    gerar_md5(link)
