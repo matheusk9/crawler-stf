@@ -18,7 +18,6 @@ html = response.content
 
 soup = BeautifulSoup(html, 'html.parser')
 
-print(response.status_code)
 
 # pega as listas com os links
 listas = soup.find('ul', {'class':'result__container--simples'})
@@ -31,7 +30,7 @@ for link in listas:
     url_DJe.append('https://portal.stf.jus.br/servicos/dje/'+str(links_DJe))
 
 
+# fazendo requisição dos links
 for link in url_DJe:
-
-    response_processo = requests.get(link)
-    print(f'link:{link} code:{response.status_code}')
+    response_processo = requests.get(link, headers=user_agent)
+    print(f'link:{link} code:{response_processo.status_code}')
