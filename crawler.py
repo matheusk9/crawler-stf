@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
-
+import sys
 
 def gerar_md5(link_pdf, conf):
     hashes = {}
@@ -20,7 +20,7 @@ def getRequest(link, conf):
 
 
 # entrada do usuario
-data = input()
+data = sys.argv[1]
 data_inicial = data
 data_final = data
 
