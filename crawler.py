@@ -1,16 +1,7 @@
+from hashcode import HashCode
+import sys
 import requests
 from bs4 import BeautifulSoup
-import hashlib
-import sys
-
-def gerar_md5(link_pdf, conf):
-    hashes = {}
-    response = requests.get(link_pdf, headers= conf)
-    pdf_content = response.content
-
-    md5_hash = hashlib.md5(pdf_content).hexdigest()
-    hashes[md5_hash] = link_pdf
-    return print(hashes)
 
 
 def getRequest(link, conf):
@@ -47,4 +38,4 @@ for link in url_DJe:
 
 # iterando pela lista de pdf e gerando o hashcode MD5
 for link in pdf_url:
-    gerar_md5(link, user_agent)
+    HashCode.generate(link, user_agent)
