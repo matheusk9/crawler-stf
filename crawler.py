@@ -13,7 +13,8 @@ class Crawler():
         }
         self._url = f"https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&dataInicial={self.data}&dataFinal={self.data}&tipoPesquisaDJ=&argumento="
 
-    def get_user_agent(self):
+    @property
+    def user_agent(self):
         """doc"""
         return self._user_agent
 
@@ -22,7 +23,7 @@ class Crawler():
 
         if link is None:
             link = self._url
-        response = requests.get(url=link, headers=self._user_agent, timeout=time)
+        response = requests.get(url=link, headers=self.user_agent, timeout=time)
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
 
