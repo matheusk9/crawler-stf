@@ -3,21 +3,22 @@ import sys
 from hashcode import HashCode
 from crawler import Crawler
 
-
-teste = Crawler()
+# SEPARAR CADA 'REQUEST' E BOTAR NO CRAWLER COMO FUNÇÕES
+# AGENT E URL VAI PRO CONSTRUCT NO CRAWLER E FAZER O SUPER() NO HASCODE
+teste = Crawler('13-12-2022')
 # entrada do usuario
-DATA = sys.argv[1]
-DATA_INICIAL = DATA
-DATA_FINAL = DATA
+# DATA = sys.argv[1]
+# DATA_INICIAL = DATA
+# DATA_FINAL = DATA
 
-# necessário para que o servidor não bloqueie acesso
-user_agent = {
-    "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-}
-url = f"https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&dataInicial={DATA_INICIAL}&dataFinal={DATA_FINAL}&tipoPesquisaDJ=&argumento="
+# # necessário para que o servidor não bloqueie acesso
+# user_agent = {
+#     "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+# }
+# url = f"https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&dataInicial={DATA_INICIAL}&dataFinal={DATA_FINAL}&tipoPesquisaDJ=&argumento="
 
 # pega as listas com os links
-lista_de_links = teste.requisicao(url, user_agent).find(
+lista_de_links = teste.requisicao().find(
     "ul", {"class": "result__container--simples"}
 )
 
@@ -31,7 +32,7 @@ for link in lista_de_links:
 # iterando pelos links da lista
 pdf_url = []
 for link in url_DJe:
-    pdf_links = teste.requisicao(link, user_agent).find_all(
+    pdf_links = teste.requisicao(link).find_all(
         "a", {"target": "_blank"}
     )
     for pdf_link in pdf_links:
@@ -41,6 +42,6 @@ for link in url_DJe:
 hashcodes = {}
 # iterando pela lista de pdf e gerando o hashcode MD5
 for link in pdf_url:
-    HashCode.generate(hashcodes, link, user_agent)
+    HashCode.generate(hashcodes, link, teste)
 
 print(hashcodes)
