@@ -5,7 +5,7 @@ import requests
 from crawler import Crawler
 
 
-class HashCode:
+class HashCode(Crawler):
     """docstriasdasd"""
 
     @staticmethod
