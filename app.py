@@ -1,4 +1,4 @@
-"""doc"""
+"""Módulo de execução e instâncias."""
 from hashcode import HashCode
 from crawler import Crawler
 

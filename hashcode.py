@@ -1,4 +1,4 @@
-"""docstriasdasd"""
+"""Módulo específico para HashCode."""
 import hashlib
 
 import requests
@@ -6,11 +6,14 @@ from crawler import Crawler
 
 
 class HashCode(Crawler):
-    """docstriasdasd"""
+    """Responsável apenas para gerar chaves Hash."""
 
     @staticmethod
     def generate(dicionario: dict, link, obj: Crawler):
-        """docstring"""
+        """Faz a requisição do link passado por parâmetro.
+
+        Gera o código MD5 e popula um dicionário com seus respectivos links.
+        """
 
         response = requests.get(url=link, headers=obj.user_agent, timeout=60)
         pdf_content = response.content
