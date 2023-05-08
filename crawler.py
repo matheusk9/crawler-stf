@@ -1,6 +1,7 @@
 """Modulo de requisições."""
 import requests
 from bs4 import BeautifulSoup
+import hashlib
 
 
 class Crawler:
@@ -25,7 +26,19 @@ class Crawler:
         """Metodo get."""
         return self._user_agent
 
-    def requisicao(self, link=None, time=60):
+    def generate(self, dicionario: dict, link):
+        """Faz a requisição do link passado por parâmetro.
+
+        Gera o código MD5 e popula um dicionário com seus respectivos links.
+        """
+
+        response = requests.get(url=link, headers=self.user_agent, timeout=60)
+        pdf_content = response.content
+        md5_hash = hashlib.md5(pdf_content).hexdigest()
+        dicionario[md5_hash] = link
+        return dicionario
+
+    def obtem_soup(self, link=None, time=60):
         """Faz a requisicao do link passado por parametro.
 
         Response = pega o HTML bruto.
@@ -38,7 +51,7 @@ class Crawler:
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
 
-    def get_url_acesso(self):
+    def obtem_url_acesso(self):
         """Acesso a primeira pagina.
 
         Faz o request da primeira pagina e busca todo link na lista 'ul'.
@@ -54,7 +67,7 @@ class Crawler:
             url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
         return url
 
-    def get_url_integral(self, url: list):
+    def obtem_url_integral(self, url: list):
         """Acesso a pagina de PDFs integrais e paginados.
 
         Busca apenas links de PDFs integrais e armazena na lista pdf_url.
