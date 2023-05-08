@@ -2,13 +2,14 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
+import sys
 
 
 class Crawler:
     """Responsavel pela configuração e requests."""
 
     def __init__(self):
-        self.data = "13-12-2022"
+        self.data = sys.argv[1]
         self._user_agent = {
             "User-agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -26,7 +27,7 @@ class Crawler:
         """Metodo get."""
         return self._user_agent
 
-    def generate(self, dicionario: dict, link):
+    def gera_hashcode(self, dicionario: dict, link):
         """Faz a requisição do link passado por parâmetro.
 
         Gera o código MD5 e popula um dicionário com seus respectivos links.
@@ -58,7 +59,7 @@ class Crawler:
         Armazena todos os links na lista 'url'.
         """
 
-        lista_pdf = self.requisicao().find(
+        lista_pdf = self.obtem_soup().find(
             "ul", {"class": "result__container--simples"}
         )
         url = []
@@ -75,7 +76,7 @@ class Crawler:
 
         pdf_url = []
         for link in url:
-            integ_pag = self.requisicao(link).find_all("a", {"target": "_blank"})
+            integ_pag = self.obtem_soup(link).find_all("a", {"target": "_blank"})
             for pdf_link in integ_pag:
                 if "Integral" in pdf_link.text:
                     pdf_url.append("https://portal.stf.jus.br" + str(pdf_link["href"]))
