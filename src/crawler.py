@@ -58,15 +58,22 @@ class Crawler:
         Faz o request da primeira pagina e busca todo link na lista 'ul'.
         Armazena todos os links na lista 'url'.
         """
+        try:
+            lista_pdf = self.obtem_soup().find(
+                "ul", {"class": "result__container--simples"}
+            )
 
-        lista_pdf = self.obtem_soup().find(
-            "ul", {"class": "result__container--simples"}
-        )
-        url = []
-        for item in lista_pdf:
-            links_dj = item.find("a")["href"]
-            url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
-        return url
+            if len(lista_pdf) < 1:
+                raise FileNotFoundError
+
+            url = []
+            for item in lista_pdf:
+                links_dj = item.find("a")["href"]
+                url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
+            return url
+
+        except FileNotFoundError:
+            print("Não existem DJe na data informada! Tente outra data.")
 
     def obtem_url_integral(self, url: list):
         """Acesso a pagina de PDFs integrais e paginados.
