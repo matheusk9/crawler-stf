@@ -2,19 +2,20 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
+import sys
 
 
 class Crawler:
     """Responsavel pela extração dos dados"""
 
-    def __init__(self, data) -> None:
-        self.data = data
+    def __init__(self, data: str) -> None:
+        self.__data = data
         self.__dicionario = {}
 
     @property
-    def data_de_busca(self):
+    def data_de_busca(self) -> str:
         """Metodo get."""
-        return self.data
+        return self.__data
 
     @property
     def dicionario(self):
@@ -31,7 +32,7 @@ class Crawler:
     LINK_DE_BUSCA = (
         "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
         "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
-        "dataInicial={data}&dataFinal={data}&tipoPesquisaDJ=&argumento=".format(data=data_de_busca)
+        "dataInicial={data}&dataFinal={data}&tipoPesquisaDJ=&argumento="
     )
 
     def obtem_soup(self, link=None, time=60):
@@ -42,8 +43,9 @@ class Crawler:
         """
 
         if link is None:
-            link = self.LINK_DE_BUSCA
+            link = self.LINK_DE_BUSCA.format(data=self.data_de_busca)
         response = requests.get(url=link, headers=self.HEADER, timeout=time)
+        # import pdb; pdb.set_trace()
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
 
@@ -60,31 +62,34 @@ class Crawler:
                 "ul", {"class": "result__container--simples"}
             )
 
-            lista_pdf = lista_pdf.select('a')
+            lista_pdf = lista_pdf.select("a")
             if not lista_pdf:
-                raise FileNotFoundError("Não encontrado!")
+                sys.exit("Não existem DJe na data informada! Tente outra data.")
 
             url = []
             for item in lista_pdf:
                 links_dj = item["href"]
                 url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
             return url
-        except FileNotFoundError:
-            print("Não existem DJe na data informada! Tente outra data.")
+        except Exception as e:
+            print(f"Ocorreu um erro inesperado: {e}")
 
-    def obtem_url_integral(self, url: list):
+    def obtem_url_integral(self):
         """Acesso a pagina de PDFs integrais e paginados.
 
-        Busca apenas links de PDFs integrais e armazena na lista pdf_url.
+        Busca apenas links de PDFs integrais e armazena na lista url_pdf_integral.
         """
 
-        pdf_url = []
-        for link in url:
+        lista_de_links_ul = self.obtem_url_acesso()
+        url_pdf_integral = []
+        for link in lista_de_links_ul:
             integ_pag = self.obtem_soup(link).find_all("a", {"target": "_blank"})
             for pdf_link in integ_pag:
                 if "Integral" in pdf_link.text:
-                    pdf_url.append("https://portal.stf.jus.br" + str(pdf_link["href"]))
-        return pdf_url
+                    url_pdf_integral.append(
+                        "https://portal.stf.jus.br" + str(pdf_link["href"])
+                    )
+        return url_pdf_integral
 
     def gera_hashcode(self, link):
         """Faz a requisição do link passado por parâmetro.
