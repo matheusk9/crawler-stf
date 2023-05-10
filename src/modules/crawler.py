@@ -5,18 +5,19 @@ import hashlib
 import sys
 
 
-class Crawler:
-    """Responsavel pela configuração e requests."""
+class Crawler():
+    """Responsavel pela extração dos dados"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.data = sys.argv[1]
-        self._user_agent = {
+        self.__dicionario = {}
+        self.__user_agent = {
             "User-agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/89.0.4389.90 Safari/537.36"
             )
         }
-        self._url = (
+        self.__url = (
             "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
             "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
             f"dataInicial={self.data}&dataFinal={self.data}&tipoPesquisaDJ=&argumento="
@@ -25,27 +26,27 @@ class Crawler:
     @property
     def user_agent(self):
         """Metodo get."""
-        return self._user_agent
+        return self.__user_agent
 
-    def gera_hashcode(self, dicionario: dict, link):
-        """Faz a requisição do link passado por parâmetro.
+    @property
+    def url_padrao(self):
+        """Metodo get."""
+        return self.__url
 
-
-        response = requests.get(url=link, headers=self.user_agent, timeout=60)
-        pdf_content = response.content
-        md5_hash = hashlib.md5(pdf_content).hexdigest()
-        dicionario[md5_hash] = link
-        return dicionario
+    @property
+    def dicionario(self):
+        """Metodo get."""
+        return self.__dicionario
 
     def obtem_soup(self, link=None, time=60):
         """Faz a requisicao do link passado por parametro.
 
         Response = pega o HTML bruto.
-        Soup = analisa e processa o HTML.
+        Soup = retorna um objeto do HTML.
         """
 
         if link is None:
-            link = self._url
+            link = self.url_padrao
         response = requests.get(url=link, headers=self.user_agent, timeout=time)
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
@@ -53,23 +54,25 @@ class Crawler:
     def obtem_url_acesso(self):
         """Acesso a primeira pagina.
 
-        Faz o request da primeira pagina e busca todo link na lista 'ul'.
-        Armazena todos os links na lista 'url'.
+        Faz o request da primeira pagina e busca pela 'ul' no html.
+        Lista_pdf = contém o 'ul' e faz a busca por todos os links contidos ('a').
+        Caso não tenha links, retorna a excessão FileNotFoundError e encerra o programa.
+        Se não houver excessões, retorna os links na lista 'url'.
         """
         try:
             lista_pdf = self.obtem_soup().find(
                 "ul", {"class": "result__container--simples"}
             )
 
-            if len(lista_pdf) < 1:
-                raise FileNotFoundError
+            lista_pdf = lista_pdf.select('a')
+            if not lista_pdf:
+                raise FileNotFoundError("Não encontrado!")
 
             url = []
             for item in lista_pdf:
-                links_dj = item.find("a")["href"]
+                links_dj = item["href"]
                 url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
             return url
-
         except FileNotFoundError:
             print("Não existem DJe na data informada! Tente outra data.")
 
@@ -86,3 +89,15 @@ class Crawler:
                 if "Integral" in pdf_link.text:
                     pdf_url.append("https://portal.stf.jus.br" + str(pdf_link["href"]))
         return pdf_url
+
+    def gera_hashcode(self, link):
+        """Faz a requisição do link passado por parâmetro.
+
+        Gera os códigos MD5 e os retorna em um dicionário com seus respectivos links.
+        """
+
+        response = requests.get(url=link, headers=self.user_agent, timeout=60)
+        pdf_content = response.content
+        md5_hash = hashlib.md5(pdf_content).hexdigest()
+        self.dicionario[md5_hash] = link
+        return self.dicionario
