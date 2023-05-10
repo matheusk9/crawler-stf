@@ -2,26 +2,25 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
-import sys
 
 
-class Crawler():
+class Crawler:
     """Responsavel pela extração dos dados"""
 
-    def __init__(self) -> None:
-        self.data = sys.argv[1]
+    def __init__(self, data) -> None:
+        self.data = data
         self.__dicionario = {}
+        self.__url = (
+            "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
+            "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
+            f"dataInicial={self.data}&dataFinal={self.data}&tipoPesquisaDJ=&argumento="
+        )
         self.__user_agent = {
             "User-agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/89.0.4389.90 Safari/537.36"
             )
         }
-        self.__url = (
-            "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
-            "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
-            f"dataInicial={self.data}&dataFinal={self.data}&tipoPesquisaDJ=&argumento="
-        )
 
     @property
     def user_agent(self):
