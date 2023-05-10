@@ -1,11 +1,13 @@
 """Módulo de execução e instâncias."""
-from src.crawler import Crawler
+from src.modules.crawler import Crawler
 
-app = Crawler()
-dje_do_dia = app.obtem_url_acesso()
-pdf_integral = app.obtem_url_integral(dje_do_dia)
-hashcodes = {}
+extracao = Crawler()
+
+dje_do_dia = extracao.obtem_url_acesso()
+pdf_integral = extracao.obtem_url_integral(dje_do_dia)
+
 for url in pdf_integral:
-    app.gera_hashcode(hashcodes, url)
+    extracao.gera_hashcode(url)
 
-print(hashcodes)
+hash_codes = extracao.dicionario
+print(hash_codes.items())

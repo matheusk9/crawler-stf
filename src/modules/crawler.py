@@ -30,8 +30,6 @@ class Crawler:
     def gera_hashcode(self, dicionario: dict, link):
         """Faz a requisição do link passado por parâmetro.
 
-        Gera o código MD5 e popula um dicionário com seus respectivos links.
-        """
 
         response = requests.get(url=link, headers=self.user_agent, timeout=60)
         pdf_content = response.content
