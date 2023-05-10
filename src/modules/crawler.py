@@ -3,19 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import hashlib
 
-HEADER = {
-    "User-agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/89.0.4389.90 Safari/537.36"
-    )
-}
-
-LINK_DE_BUSCA = (
-    "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
-    "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
-    f"dataInicial={self.data}&dataFinal={self.data}&tipoPesquisaDJ=&argumento="
-)
-
 
 class Crawler:
     """Responsavel pela extração dos dados"""
@@ -25,9 +12,27 @@ class Crawler:
         self.__dicionario = {}
 
     @property
+    def data_de_busca(self):
+        """Metodo get."""
+        return self.data
+
+    @property
     def dicionario(self):
         """Metodo get."""
         return self.__dicionario
+
+    HEADER = {
+        "User-agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/89.0.4389.90 Safari/537.36"
+        )
+    }
+
+    LINK_DE_BUSCA = (
+        "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
+        "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
+        "dataInicial={data}&dataFinal={data}&tipoPesquisaDJ=&argumento=".format(data=data_de_busca)
+    )
 
     def obtem_soup(self, link=None, time=60):
         """Faz a requisicao do link passado por parametro.
@@ -37,8 +42,8 @@ class Crawler:
         """
 
         if link is None:
-            link = LINK_DE_BUSCA
-        response = requests.get(url=link, headers=HEADER, timeout=time)
+            link = self.LINK_DE_BUSCA
+        response = requests.get(url=link, headers=self.HEADER, timeout=time)
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
 
@@ -87,7 +92,7 @@ class Crawler:
         Gera os códigos MD5 e os retorna em um dicionário com seus respectivos links.
         """
 
-        response = requests.get(url=link, headers=self.user_agent, timeout=60)
+        response = requests.get(url=link, headers=self.HEADER, timeout=60)
         pdf_content = response.content
         md5_hash = hashlib.md5(pdf_content).hexdigest()
         self.dicionario[md5_hash] = link
