@@ -44,7 +44,6 @@ class Crawler:
         if link is None:
             link = self.LINK_DE_BUSCA.format(data=self.data_de_busca)
         response = requests.get(url=link, headers=self.HEADER, timeout=time)
-        # import pdb; pdb.set_trace()
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
 
@@ -61,7 +60,21 @@ class Crawler:
             lista_pdf = self.obtem_soup()
             lista_pdf = lista_pdf.find(
                 "ul", {"class": "result__container--simples"}
-            ).select("a")
+            )
+            
+            # if not lista_pdf:
+            #     with open('pagina.html', 'w') as file:
+            #         file.write(str(self.obtem_soup()))
+            #     import pdb; pdb.set_trace()
+            # else:
+            #     if len(lista_pdf) == 1:
+            #         with open('pagina_com_1.html', 'w') as file:
+            #             file.write(str(self.obtem_soup()))
+            #     elif len(lista_pdf) >= 1:
+            #         with open('pagina_maior_que_1.html', 'w') as file:
+            #             file.write(str(self.obtem_soup()))
+            # exit()
+            lista_pdf = lista_pdf.select("a")
 
             url = []
             if not lista_pdf:
