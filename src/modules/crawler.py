@@ -57,12 +57,13 @@ class Crawler:
         Caso não tenha links, retorna a excessão FileNotFoundError e encerra o programa.
         Se não houver excessões, retorna os links na lista 'url'.
         """
-        try:
-            lista_pdf = self.obtem_soup().find(
-                "ul", {"class": "result__container--simples"}
-            )
 
-            lista_pdf = lista_pdf.select("a")
+        try:
+            lista_pdf = self.obtem_soup()
+            lista_pdf = lista_pdf.find(
+                "ul", {"class": "result__container--simples"}
+            ).select("a")
+
             if not lista_pdf:
                 sys.exit("Não existem DJe na data informada! Tente outra data.")
 
@@ -72,7 +73,9 @@ class Crawler:
                 url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
             return url
         except Exception as e:
+            lista_vazia = []
             print(f"Ocorreu um erro inesperado: {e}")
+            return lista_vazia
 
     def obtem_url_integral(self):
         """Acesso a pagina de PDFs integrais e paginados.
@@ -102,3 +105,14 @@ class Crawler:
         md5_hash = hashlib.md5(pdf_content).hexdigest()
         self.dicionario[md5_hash] = link
         return self.dicionario
+
+    @staticmethod
+    def run(data):
+        """Método responsavel pela execução do script."""
+
+        extracao = Crawler(data)
+        resultado_pdf_integral = extracao.obtem_url_integral()
+
+        for url in resultado_pdf_integral:
+            extracao.gera_hashcode(url)
+        return print(extracao.dicionario.items())
