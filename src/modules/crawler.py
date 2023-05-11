@@ -2,7 +2,6 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
-import sys
 
 
 class Crawler:
@@ -64,10 +63,10 @@ class Crawler:
                 "ul", {"class": "result__container--simples"}
             ).select("a")
 
-            if not lista_pdf:
-                sys.exit("Não existem DJe na data informada! Tente outra data.")
-
             url = []
+            if not lista_pdf:
+                return url
+
             for item in lista_pdf:
                 links_dj = item["href"]
                 url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
@@ -76,17 +75,22 @@ class Crawler:
             lista_vazia = []
             print(f"Ocorreu um erro inesperado: {e}")
             return lista_vazia
+        finally:
+            print("Processando...")
 
     def obtem_url_integral(self):
         """Acesso a pagina de PDFs integrais e paginados.
 
         Busca apenas links de PDFs integrais e armazena na lista url_pdf_integral.
         """
-
         lista_de_links_ul = self.obtem_url_acesso()
+        if not lista_de_links_ul:
+            return False
+
         url_pdf_integral = []
         for link in lista_de_links_ul:
-            integ_pag = self.obtem_soup(link).find_all("a", {"target": "_blank"})
+            integ_pag = self.obtem_soup(link)
+            integ_pag = integ_pag.find_all("a", {"target": "_blank"})
             for pdf_link in integ_pag:
                 if "Integral" in pdf_link.text:
                     url_pdf_integral.append(
@@ -113,6 +117,9 @@ class Crawler:
         extracao = Crawler(data)
         resultado_pdf_integral = extracao.obtem_url_integral()
 
-        for url in resultado_pdf_integral:
-            extracao.gera_hashcode(url)
-        return print(extracao.dicionario.items())
+        if resultado_pdf_integral:
+            for url in resultado_pdf_integral:
+                extracao.gera_hashcode(url)
+            return print(extracao.dicionario.items())
+        else:
+            print("Não existem DJe na data informada!")
