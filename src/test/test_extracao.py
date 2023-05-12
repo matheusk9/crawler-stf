@@ -10,7 +10,7 @@ class TestExtracao(unittest.TestCase):
     def test_fake_request(self):
         head = {
             "User-agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkksadasdkasldkslkdmasldmlsakmdlsakmdskdm"
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/89.0.4389.90 Safari/537.36"
             )
         }
@@ -26,7 +26,3 @@ class TestExtracao(unittest.TestCase):
             # import pdb; pdb.set_trace()
         self.assertEqual(soup_esperado, soup_obtido)
         mock_get.assert_called_once_with(url="python.org", headers=head, timeout=60)
-
-
-# if __name__ == '__main__':
-#     unittest.main()
