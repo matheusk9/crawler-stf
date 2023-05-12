@@ -17,6 +17,6 @@ class TestTreinamento(unittest.TestCase):
     def test_fracao(self):
         """Doc"""
 
-        lista = [Fraction(1,4), Fraction(1,4), Fraction(2,5)]
+        lista = [Fraction(1, 4), Fraction(1, 4), Fraction(2, 5)]
         total = soma_iteravel(lista)
         self.assertEqual(total, 1)

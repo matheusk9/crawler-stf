@@ -1,11 +1,22 @@
-"""Modulo de requisições."""
 import requests
 from bs4 import BeautifulSoup
 import hashlib
 
 
 class Crawler:
-    """Responsavel pela extração dos dados"""
+
+    HEADER = {
+        "User-agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/89.0.4389.90 Safari/537.36"
+        )
+    }
+
+    LINK_DE_BUSCA = (
+        "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
+        "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
+        "dataInicial={data}&dataFinal={data}"
+    )
 
     def __init__(self, data: str) -> None:
         self.__data = data
@@ -21,20 +32,18 @@ class Crawler:
         """Metodo get."""
         return self.__dicionario
 
-    HEADER = {
-        "User-agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/89.0.4389.90 Safari/537.36"
-        )
-    }
+    def run(self):
+        """Método responsavel pela execução do script."""
 
-    LINK_DE_BUSCA = (
-        "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
-        "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
-        "dataInicial={data}&dataFinal={data}"
-    )
+        resultado_pdf_integral = self._obtem_url_integral()
+        if resultado_pdf_integral:
+            for url in resultado_pdf_integral:
+                self._gera_hashcode(url)
+            return print(self.dicionario.items())
+        else:
+            print("Não existem DJe na data informada!")
 
-    def obtem_soup(self, link=None, time=60):
+    def _obtem_soup(self, link=None, time=60):
         """Faz a requisicao do link passado por parametro.
 
         Response = pega o HTML bruto.
@@ -47,7 +56,7 @@ class Crawler:
         soup = BeautifulSoup(response.content, "html.parser")
         return soup
 
-    def obtem_url_acesso(self):
+    def _obtem_url_acesso(self):
         """Acesso a primeira pagina.
 
         Faz o request da primeira pagina e busca pela 'ul' no html.
@@ -57,7 +66,7 @@ class Crawler:
         """
 
         try:
-            lista_pdf = self.obtem_soup()
+            lista_pdf = self._obtem_soup()
             lista_pdf = lista_pdf.select_one('section[id="conteudo"]')
             lista_pdf = lista_pdf.select("a")
 
@@ -76,18 +85,18 @@ class Crawler:
         finally:
             print("Processando...")
 
-    def obtem_url_integral(self):
+    def _obtem_url_integral(self):
         """Acesso a pagina de PDFs integrais e paginados.
 
         Busca apenas links de PDFs integrais e armazena na lista url_pdf_integral.
         """
-        lista_de_links_ul = self.obtem_url_acesso()
+        lista_de_links_ul = self._obtem_url_acesso()
         if not lista_de_links_ul:
             return False
 
         url_pdf_integral = []
         for link in lista_de_links_ul:
-            integ_pag = self.obtem_soup(link)
+            integ_pag = self._obtem_soup(link)
             integ_pag = integ_pag.select_one('section[id="conteudo"]')
             if not integ_pag:
                 break
@@ -100,7 +109,7 @@ class Crawler:
                     )
         return url_pdf_integral
 
-    def gera_hashcode(self, link):
+    def _gera_hashcode(self, link):
         """Faz a requisição do link passado por parâmetro.
 
         Gera os códigos MD5 e os retorna em um dicionário com seus respectivos links.
@@ -111,15 +120,3 @@ class Crawler:
         md5_hash = hashlib.md5(pdf_content).hexdigest()
         self.dicionario[md5_hash] = link
         return self.dicionario
-
-    def run(self):
-        """Método responsavel pela execução do script."""
-
-        resultado_pdf_integral = self.obtem_url_integral()
-
-        if resultado_pdf_integral:
-            for url in resultado_pdf_integral:
-                self.gera_hashcode(url)
-            return print(self.dicionario.items())
-        else:
-            print("Não existem DJe na data informada!")

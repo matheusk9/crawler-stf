@@ -1,4 +1,4 @@
 """Módulo de execução"""
 from src.modules.crawler import Crawler
 
-Crawler('01-11-2022').run()
+Crawler('13-12-2022').run()
