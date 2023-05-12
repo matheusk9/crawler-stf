@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 
 class TestExtracao(unittest.TestCase):
-    """Doc"""
+    """Testes de integração."""
 
     def test_fake_request(self):
         head = {
