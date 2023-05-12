@@ -31,7 +31,7 @@ class Crawler:
     LINK_DE_BUSCA = (
         "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
         "tipoVisualizaDJ=periodoDJ&txtNumeroDJ=&txtAnoDJ=2022&"
-        "dataInicial={data}&dataFinal={data}&tipoPesquisaDJ=&argumento="
+        "dataInicial={data}&dataFinal={data}"
     )
 
     def obtem_soup(self, link=None, time=60):
@@ -58,22 +58,7 @@ class Crawler:
 
         try:
             lista_pdf = self.obtem_soup()
-            lista_pdf = lista_pdf.find(
-                "ul", {"class": "result__container--simples"}
-            )
-            
-            # if not lista_pdf:
-            #     with open('pagina.html', 'w') as file:
-            #         file.write(str(self.obtem_soup()))
-            #     import pdb; pdb.set_trace()
-            # else:
-            #     if len(lista_pdf) == 1:
-            #         with open('pagina_com_1.html', 'w') as file:
-            #             file.write(str(self.obtem_soup()))
-            #     elif len(lista_pdf) >= 1:
-            #         with open('pagina_maior_que_1.html', 'w') as file:
-            #             file.write(str(self.obtem_soup()))
-            # exit()
+            lista_pdf = lista_pdf.select_one('section[id="conteudo"]')
             lista_pdf = lista_pdf.select("a")
 
             url = []
@@ -103,8 +88,12 @@ class Crawler:
         url_pdf_integral = []
         for link in lista_de_links_ul:
             integ_pag = self.obtem_soup(link)
+            integ_pag = integ_pag.select_one('section[id="conteudo"]')
+            if not integ_pag:
+                break
             integ_pag = integ_pag.find_all("a", {"target": "_blank"})
             for pdf_link in integ_pag:
+                # import pdb; pdb.set_trace()
                 if "Integral" in pdf_link.text:
                     url_pdf_integral.append(
                         "https://portal.stf.jus.br" + str(pdf_link["href"])
@@ -123,16 +112,14 @@ class Crawler:
         self.dicionario[md5_hash] = link
         return self.dicionario
 
-    @staticmethod
-    def run(data):
+    def run(self):
         """Método responsavel pela execução do script."""
 
-        extracao = Crawler(data)
-        resultado_pdf_integral = extracao.obtem_url_integral()
+        resultado_pdf_integral = self.obtem_url_integral()
 
         if resultado_pdf_integral:
             for url in resultado_pdf_integral:
-                extracao.gera_hashcode(url)
-            return print(extracao.dicionario.items())
+                self.gera_hashcode(url)
+            return print(self.dicionario.items())
         else:
             print("Não existem DJe na data informada!")
