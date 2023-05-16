@@ -1,6 +1,8 @@
+import hashlib
+import os
+
 import requests
 from bs4 import BeautifulSoup
-import hashlib
 
 
 class Crawler:
@@ -43,7 +45,11 @@ class Crawler:
         else:
             print("Não existem DJe na data informada!")
 
-    def _obtem_soup(self, link=None, time=60):
+    def _obtem_content(self, link):
+        response = requests.get(url=link, headers=self.HEADER, timeout=60)
+        return response.content
+
+    def _obtem_soup(self, link=None):
         """Faz a requisicao do link passado por parametro.
 
         Response = pega o HTML bruto.
@@ -52,8 +58,8 @@ class Crawler:
 
         if link is None:
             link = self.LINK_DE_BUSCA.format(data=self.data_de_busca)
-        response = requests.get(url=link, headers=self.HEADER, timeout=time)
-        soup = BeautifulSoup(response.content, "html.parser")
+        content = self._obtem_content(link)
+        soup = BeautifulSoup(content, "html.parser")
         return soup
 
     def _obtem_url_acesso(self):
@@ -102,7 +108,6 @@ class Crawler:
                 break
             integ_pag = integ_pag.find_all("a", {"target": "_blank"})
             for pdf_link in integ_pag:
-                # import pdb; pdb.set_trace()
                 if "Integral" in pdf_link.text:
                     url_pdf_integral.append(
                         "https://portal.stf.jus.br" + str(pdf_link["href"])
@@ -115,8 +120,22 @@ class Crawler:
         Gera os códigos MD5 e os retorna em um dicionário com seus respectivos links.
         """
 
-        response = requests.get(url=link, headers=self.HEADER, timeout=60)
-        pdf_content = response.content
+        pdf_content = self._obtem_content(link)
         md5_hash = hashlib.md5(pdf_content).hexdigest()
         self.dicionario[md5_hash] = link
         return self.dicionario
+
+    # def _baixa_cadernos(self, link):
+    #     content = self._obtem_content(link)
+    #     with open('caderno.pdf', 'wb') as file:
+    #         file.write(content)
+    #     return content
+
+    def _baixa_cadernos(self, link: str, nome_do_caderno: str):
+        if os.path.exists('src/Cadernos/'+nome_do_caderno):
+            return print("Caderno já existe!")
+
+        content = self._obtem_content(link)
+        with open(r'src/Cadernos/'+nome_do_caderno, 'wb') as file:
+            file.write(content)
+        return content
