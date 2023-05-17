@@ -41,7 +41,7 @@ class Crawler:
         if resultado_pdf_integral:
             for url in resultado_pdf_integral:
                 self._gera_hashcode(url)
-            return print(self.dicionario.items())
+            self._salva_cadernos()
         else:
             print("Não existem DJe na data informada!")
 
@@ -125,15 +125,20 @@ class Crawler:
         self.dicionario[md5_hash] = link
         return self.dicionario
 
-    def _baixa_cadernos(self, link: str, nome_do_caderno: str):
-        if os.path.exists("src/Cadernos/" + nome_do_caderno):
-            print("Caderno já existe!")
-            return None
-
-        content = self._obtem_content(link)
-        with open(r"src/Cadernos/" + nome_do_caderno, "wb") as file:
-            file.write(content)
-        return content
+    def _salva_cadernos(self):
+        data = self._formata_data()
+        diretorio = (
+            "src/Cadernos/" + data["ano"] + "/" + data["mes"] + "/" + data["dia"] + "/"
+        )
+        try:
+            os.makedirs(diretorio)
+            for chave_hash, valor_link in self.dicionario.items():
+                content = self._obtem_content(valor_link)
+                with open(diretorio + chave_hash + ".pdf", "wb") as file:
+                    file.write(content)
+            print(self.dicionario)
+        except FileExistsError:
+            print("Os cadernos na data informada já existem!")
 
     def _formata_data(self):
         """Formata a data de busca.
@@ -141,6 +146,7 @@ class Crawler:
         Remove uma cadeia de caracteres especiais utilizando regex e 'splita'.
         Realiza filtros para encontrar dia, mes e ano da lista 'data_formatada'.
         Popula um dicionario com as chaves dia, mes e ano.
+        A data deve ter a seguinte formatação: dia-mês-ano
         """
 
         data = self.data_de_busca

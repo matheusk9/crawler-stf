@@ -8,7 +8,7 @@ from src.modules.crawler import Crawler
 class TestExtracao(unittest.TestCase):
     """Testes de integração."""
 
-    crawler = Crawler("13-12-2022")
+    crawler = Crawler("29-01-2021")
 
     def test_fake_request(self):
         head = {
@@ -25,7 +25,6 @@ class TestExtracao(unittest.TestCase):
             mock_get.return_value.status_code = 200
             mock_get.return_value.content = pagina_resultado_busca
             soup_obtido = self.crawler._obtem_soup("python.org")
-            # import pdb; pdb.set_trace()
         self.assertEqual(soup_esperado, soup_obtido)
         mock_get.assert_called_once_with(url="python.org", headers=head, timeout=60)
 
@@ -42,7 +41,7 @@ class TestExtracao(unittest.TestCase):
         )
         self.assertEqual(resultado_esperado_caderno, resultado_obtido_caderno)
         self.assertTrue()
-        # apaga arquivo
+        # apagar arquivo try except
 
     def test_formata_data(self):
         data_esperada = {"dia": "13", "mes": "12", "ano": "2022"}
