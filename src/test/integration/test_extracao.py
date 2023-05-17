@@ -41,6 +41,8 @@ class TestExtracao(unittest.TestCase):
             link_de_teste, nome_do_caderno
         )
         self.assertEqual(resultado_esperado_caderno, resultado_obtido_caderno)
+        self.assertTrue()
+        # apaga arquivo
 
     def test_formata_data(self):
         data_esperada = {"dia": "13", "mes": "12", "ano": "2022"}

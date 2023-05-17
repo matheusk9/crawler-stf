@@ -142,6 +142,7 @@ class Crawler:
         Realiza filtros para encontrar dia, mes e ano da lista 'data_formatada'.
         Popula um dicionario com as chaves dia, mes e ano.
         """
+
         data = self.data_de_busca
         data_formatada = re.split(r"[-/\. ]", data)
         indice_mes = data_formatada[1]
