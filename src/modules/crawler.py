@@ -126,6 +126,12 @@ class Crawler:
         return self.dicionario
 
     def _salva_cadernos(self):
+        """Salva os cadernos em diretórios com suas respectivas datas.
+
+        Método 'makedirs()' é o responsável pela criação dos diretórios que automaticamente
+        verifica se a pasta já existe ou não. Se já existe, retorna uma excessão.
+        O método 'open()' salva de fato o arquivo PDF (content) em sua respectiva data.
+        """
         data = self._formata_data()
         diretorio = (
             "src/Cadernos/" + data["ano"] + "/" + data["mes"] + "/" + data["dia"] + "/"
