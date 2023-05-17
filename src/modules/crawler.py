@@ -1,12 +1,12 @@
 import hashlib
 import os
+import re
 
 import requests
 from bs4 import BeautifulSoup
 
 
 class Crawler:
-
     HEADER = {
         "User-agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -125,17 +125,32 @@ class Crawler:
         self.dicionario[md5_hash] = link
         return self.dicionario
 
-    # def _baixa_cadernos(self, link):
-    #     content = self._obtem_content(link)
-    #     with open('caderno.pdf', 'wb') as file:
-    #         file.write(content)
-    #     return content
-
     def _baixa_cadernos(self, link: str, nome_do_caderno: str):
-        if os.path.exists('src/Cadernos/'+nome_do_caderno):
-            return print("Caderno já existe!")
+        if os.path.exists("src/Cadernos/" + nome_do_caderno):
+            print("Caderno já existe!")
+            return None
 
         content = self._obtem_content(link)
-        with open(r'src/Cadernos/'+nome_do_caderno, 'wb') as file:
+        with open(r"src/Cadernos/" + nome_do_caderno, "wb") as file:
             file.write(content)
         return content
+
+    def _formata_data(self):
+        """Formata a data de busca.
+
+        Remove uma cadeia de caracteres especiais utilizando regex e 'splita'.
+        Realiza filtros para encontrar dia, mes e ano da lista 'data_formatada'.
+        Popula um dicionario com as chaves dia, mes e ano.
+        """
+        data = self.data_de_busca
+        data_formatada = re.split(r"[-/\. ]", data)
+        indice_mes = data_formatada[1]
+        data_formatada.pop(1)
+
+        data_final = {"dia": "", "mes": indice_mes, "ano": ""}
+        for bloco in data_formatada:
+            if len(bloco) == 4:
+                data_final["ano"] = bloco
+            else:
+                data_final["dia"] = bloco
+        return data_final
