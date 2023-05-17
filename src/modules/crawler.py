@@ -37,9 +37,9 @@ class Crawler:
     def run(self):
         """Método responsavel pela execução do script."""
 
-        resultado_pdf_integral = self._obtem_url_integral()
-        if resultado_pdf_integral:
-            for url in resultado_pdf_integral:
+        lista_de_pdfs_integrais = self._obtem_url_integral()
+        if lista_de_pdfs_integrais:
+            for url in lista_de_pdfs_integrais:
                 self._gera_hashcode(url)
             self._salva_cadernos()
         else:
@@ -150,20 +150,15 @@ class Crawler:
         """Formata a data de busca.
 
         Remove uma cadeia de caracteres especiais utilizando regex e 'splita'.
-        Realiza filtros para encontrar dia, mes e ano da lista 'data_formatada'.
         Popula um dicionario com as chaves dia, mes e ano.
         A data deve ter a seguinte formatação: dia-mês-ano
         """
 
         data = self.data_de_busca
         data_formatada = re.split(r"[-/\. ]", data)
-        indice_mes = data_formatada[1]
-        data_formatada.pop(1)
-
-        data_final = {"dia": "", "mes": indice_mes, "ano": ""}
-        for bloco in data_formatada:
-            if len(bloco) == 4:
-                data_final["ano"] = bloco
-            else:
-                data_final["dia"] = bloco
+        data_final = {
+            "dia": data_formatada[0],
+            "mes": data_formatada[1],
+            "ano": data_formatada[2],
+        }
         return data_final
