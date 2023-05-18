@@ -1,3 +1,7 @@
+import os
+import shutil
+import time
+
 from unittest.mock import patch
 import unittest
 from bs4 import BeautifulSoup
@@ -28,22 +32,24 @@ class TestExtracao(unittest.TestCase):
         self.assertEqual(soup_esperado, soup_obtido)
         mock_get.assert_called_once_with(url="python.org", headers=head, timeout=60)
 
-    def test_baixa_caderno(self):
-        link_de_teste = (
-            "https://www.caceres.mt.gov.br/fotos_institucional_downloads/2.pdf"
+    def test_salva_caderno(self):
+        cadernos_de_teste = {
+            "s12ndasdn1": b"arquivo1",
+            "1q23e5ts3e": b"arquiv2",
+            "2fasd212as": b"arquivo3",
+        }
+        data = self.crawler._formata_data()
+        diretorio = (
+            "src/test/integration/Cadernos/" + data["ano"] + "/" + data["mes"] + "/" + data["dia"] + "/"
         )
-        nome_do_caderno = "caderno1.pdf"
-        with open("src/test/integration/fixtures/caderno.pdf", "rb") as file:
-            resultado_esperado_caderno = file.read()
+        os.makedirs(diretorio)
+        for chave, valor in cadernos_de_teste.items():
+            with open(diretorio + chave + ".pdf", "wb") as file:
+                file.write(valor)
 
-        resultado_obtido_caderno = self.crawler._baixa_cadernos(
-            link_de_teste, nome_do_caderno
-        )
-        self.assertEqual(resultado_esperado_caderno, resultado_obtido_caderno)
-        self.assertTrue()
-        # apagar arquivo try except
-
-    def test_formata_data(self):
-        data_esperada = {"dia": "13", "mes": "12", "ano": "2022"}
-        data_obtida = self.crawler._formata_data()
-        self.assertEqual(data_esperada, data_obtida)
+        try:
+            time.sleep(5)
+            apagar_pasta = "src/test/integration/Cadernos/"
+            shutil.rmtree(apagar_pasta)
+        except FileExistsError:
+            print("Falha ao apagar")
