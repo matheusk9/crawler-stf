@@ -76,12 +76,10 @@ class TestExtracao(unittest.TestCase):
 
     def test_formata_data(self):
         data = self.crawler.data_de_busca
-        formata_data = re.split(r"[-/\. ]", data)
-        data_resultado = {
-            "dia": formata_data[0],
-            "mes": formata_data[1],
-            "ano": formata_data[2],
-        }
+        formata_data = r"(?P<dia>\d{2})[^\d](?P<mes>\d{2})[^\d](?P<ano>\d{4})"
+        data_match = re.match(formata_data, data)
+        data_resultado = data_match.groupdict()
+
         self.assertDictEqual(self.data_de_testes_esperada, data_resultado)
         return data_resultado
 
