@@ -80,9 +80,11 @@ class Crawler:
             if not lista_pdf:
                 return url
 
-            for item in lista_pdf:
-                links_dj = item["href"]
-                url.append("https://portal.stf.jus.br/servicos/dje/" + str(links_dj))
+            url = [
+                "https://portal.stf.jus.br/servicos/dje/" + str(item["href"])
+                for item in lista_pdf
+            ]
+
             return url
         except Exception as e:
             lista_vazia = []
@@ -129,22 +131,24 @@ class Crawler:
         """Salva os cadernos em diretórios com suas respectivas datas.
 
         Método 'makedirs()' é o responsável pela criação dos diretórios que automaticamente
-        verifica se a pasta já existe ou não. Se já existe, retorna uma excessão.
-        O método 'open()' salva de fato o arquivo PDF (content) em sua respectiva data.
+        verifica se a pasta já existe, e se não existir, cria uma nova.
+        Após a criação de diretório é verificado se o caderno em si já existe dentro da pasta.
+        Se não existir, o método 'open()' salva de fato o arquivo PDF (content) em sua respectiva data.
         """
         data = self._formata_data()
         diretorio = (
             "src/Cadernos/" + data["ano"] + "/" + data["mes"] + "/" + data["dia"] + "/"
         )
-        try:
-            os.makedirs(diretorio)
-            for chave_hash, valor_link in self.dicionario.items():
-                content = self._obtem_content(valor_link)
-                with open(diretorio + chave_hash + ".pdf", "wb") as file:
+
+        os.makedirs(diretorio, exist_ok=True)
+        for nome_do_caderno, link_do_caderno in self.dicionario.items():
+            if os.path.exists(diretorio + nome_do_caderno + ".pdf"):
+                continue
+            else:
+                content = self._obtem_content(link_do_caderno)
+                with open(diretorio + nome_do_caderno + ".pdf", "wb") as file:
                     file.write(content)
-            print(self.dicionario)
-        except FileExistsError:
-            print("Os cadernos na data informada já existem!")
+                    print(f"O caderno {nome_do_caderno} : {link_do_caderno} foi salvo com sucesso")
 
     def _formata_data(self):
         """Formata a data de busca.
