@@ -52,7 +52,7 @@ class Crawler:
     def _obtem_soup(self, link=None):
         """Faz a requisicao do link passado por parametro.
 
-        Response = pega o HTML bruto.
+        content = pega o HTML bruto.
         Soup = retorna um objeto do HTML.
         """
 
@@ -125,7 +125,6 @@ class Crawler:
         pdf_content = self._obtem_content(link)
         md5_hash = hashlib.md5(pdf_content).hexdigest()
         self.dicionario[md5_hash] = link
-        return self.dicionario
 
     def _salva_cadernos(self):
         """Salva os cadernos em diretórios com suas respectivas datas.
