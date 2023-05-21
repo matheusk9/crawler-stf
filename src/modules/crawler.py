@@ -142,12 +142,14 @@ class Crawler:
         os.makedirs(diretorio, exist_ok=True)
         for nome_do_caderno, link_do_caderno in self.dicionario.items():
             if os.path.exists(diretorio + nome_do_caderno + ".pdf"):
-                continue
+                print(f"O caderno {nome_do_caderno}.pdf já existe!")
             else:
                 content = self._obtem_content(link_do_caderno)
                 with open(diretorio + nome_do_caderno + ".pdf", "wb") as file:
                     file.write(content)
-                    print(f"O caderno {nome_do_caderno} : {link_do_caderno} foi salvo com sucesso")
+                    print(
+                        f"O caderno {nome_do_caderno} : {link_do_caderno} foi salvo com sucesso"
+                    )
 
     def _formata_data(self):
         """Formata a data de busca.
