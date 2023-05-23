@@ -1,3 +1,6 @@
+import sys
+
 from src.modules.crawler import Crawler
 
-Crawler('29-12-2022').run()
+data = sys.argv[1]
+Crawler(data).run()

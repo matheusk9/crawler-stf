@@ -14,16 +14,19 @@ class TestExtracao(unittest.TestCase):
 
     def setUp(self) -> None:
         self.crawler = Crawler("29-12-2022")
-
-        with open("src/test/integration/fixtures/resultado_busca.html", "r") as file:
-            self.pagina_resultado_busca = file.read()
-
         self.head = {
             "User-agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/89.0.4389.90 Safari/537.36"
             )
         }
+
+        with open("src/test/integration/fixtures/resultado_busca.html", "r") as file:
+            self.pagina_resultado_busca = file.read()
+
+        with open("src/test/integration/fixtures/pagina_integral_paginado.html", "r") as file:
+            self.pagina_integral_paginado = file.read()
+
         self.cadernos_de_testes = {
             "1bdfe4baf9061c3667ded70d8f66142c": b"arquivo1",
             "8eed470a9ac3c36ef139ece144537f46": b"arquiv2",
@@ -82,6 +85,28 @@ class TestExtracao(unittest.TestCase):
             headers=self.head,
             timeout=60,
         )
+
+    def test_obtem_url_integral(self):
+        retorno_obtem_url_acesso = [
+            (
+                "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
+                "tipoVisualizaDJ=numeroDJ&txtNumeroDJ=253&txtAnoDJ=2022"
+            )
+        ]
+        url_integral_esperado = [
+            "https://portal.stf.jus.br/servicos/dje/verDiarioEletronico.asp?numero=253&data=12/12/2022"
+        ]
+
+        with patch.object(
+            self.crawler, "_obtem_url_acesso", return_value=retorno_obtem_url_acesso
+        ) as mock_obtem_url_acesso:
+            with patch(self.REQUESTS_GET) as mock_get:
+                mock_get.return_value.content = self.pagina_integral_paginado
+                url_integral_obtido = self.crawler._obtem_url_integral()
+
+        self.assertEqual(url_integral_obtido, url_integral_esperado)
+        mock_obtem_url_acesso.assert_called_once()
+        mock_get.assert_called()
 
     def test_salva_caderno(self):
         conteudo_esperado = b"conteudo do arquivo"
