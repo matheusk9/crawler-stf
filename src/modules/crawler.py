@@ -21,27 +21,31 @@ class Crawler:
     )
 
     def __init__(self, data: str) -> None:
-        self.__data = data
-        self.__dicionario = {}
+        self._data = data
+        self._dicionario = {}
 
     @property
     def data_de_busca(self) -> str:
         """Metodo get."""
-        return self.__data
+        return self._data
 
     @property
     def dicionario(self):
         """Metodo get."""
-        return self.__dicionario
+        return self._dicionario
 
     def run(self):
         """Método responsavel pela execução do script."""
-
+        data = self._formata_data(self.data_de_busca)
+        diretorio = (
+            "src/Cadernos/" + data["ano"] + "/" + data["mes"] + "/" + data["dia"] + "/"
+        )
         lista_de_pdfs_integrais = self._obtem_url_integral()
         if lista_de_pdfs_integrais:
             for url in lista_de_pdfs_integrais:
-                self._gera_hashcode(url)
-            self._salva_cadernos()
+                conteudo_do_pdf = self._obtem_content(url)
+                self._gera_hashcode(conteudo_do_pdf)
+            self._salva_cadernos(diretorio)
         else:
             print("Não existem DJe na data informada!")
 
@@ -76,10 +80,10 @@ class Crawler:
             lista_pdf = lista_pdf.select_one('section[id="conteudo"]')
             lista_pdf = lista_pdf.select("a")
 
-            url = []
             if not lista_pdf:
-                return url
+                return []
 
+            url = []
             url = [
                 "https://portal.stf.jus.br/servicos/dje/" + str(item["href"])
                 for item in lista_pdf
@@ -87,9 +91,8 @@ class Crawler:
 
             return url
         except Exception as e:
-            lista_vazia = []
             print(f"Ocorreu um erro inesperado: {e}")
-            return lista_vazia
+            return []
         finally:
             print("Processando...")
 
@@ -116,17 +119,15 @@ class Crawler:
                     )
         return url_pdf_integral
 
-    def _gera_hashcode(self, link):
+    def _gera_hashcode(self, conteudo):
         """Faz a requisição do link passado por parâmetro.
 
         Gera os códigos MD5 e os retorna em um dicionário com seus respectivos links.
         """
+        md5_hash = hashlib.md5(conteudo).hexdigest()
+        self.dicionario[md5_hash] = conteudo
 
-        pdf_content = self._obtem_content(link)
-        md5_hash = hashlib.md5(pdf_content).hexdigest()
-        self.dicionario[md5_hash] = link
-
-    def _salva_cadernos(self):
+    def _salva_cadernos(self, diretorio):
         """Salva os cadernos em diretórios com suas respectivas datas.
 
         Método 'makedirs()' é o responsável pela criação dos diretórios que automaticamente
@@ -134,24 +135,17 @@ class Crawler:
         Após a criação de diretório é verificado se o caderno em si já existe dentro da pasta.
         Se não existir, o método 'open()' salva de fato o arquivo PDF (content) em sua respectiva data.
         """
-        data = self._formata_data()
-        diretorio = (
-            "src/Cadernos/" + data["ano"] + "/" + data["mes"] + "/" + data["dia"] + "/"
-        )
 
         os.makedirs(diretorio, exist_ok=True)
-        for nome_do_caderno, link_do_caderno in self.dicionario.items():
+        for nome_do_caderno, conteudo_do_caderno in self.dicionario.items():
             if os.path.exists(diretorio + nome_do_caderno + ".pdf"):
                 print(f"O caderno {nome_do_caderno}.pdf já existe!")
             else:
-                content = self._obtem_content(link_do_caderno)
                 with open(diretorio + nome_do_caderno + ".pdf", "wb") as file:
-                    file.write(content)
-                    print(
-                        f"O caderno {nome_do_caderno} : {link_do_caderno} foi salvo com sucesso"
-                    )
+                    file.write(conteudo_do_caderno)
+                    print(f"O caderno {nome_do_caderno} foi salvo com sucesso")
 
-    def _formata_data(self):
+    def _formata_data(self, data):
         """Formata a data de busca.
 
         Remove uma cadeia de caracteres especiais utilizando regex e 'splita'.
@@ -159,7 +153,6 @@ class Crawler:
         A data deve ter a seguinte formatação: dia-mês-ano
         """
 
-        data = self.data_de_busca
         data_formatada = re.split(r"[-/\. ]", data)
         data_final = {
             "dia": data_formatada[0],
