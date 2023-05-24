@@ -1,4 +1,5 @@
 import shutil
+from unittest import mock
 
 from unittest.mock import patch
 import unittest
@@ -24,16 +25,36 @@ class TestExtracao(unittest.TestCase):
 
         with open("src/test/integration/fixtures/resultado_busca.html", "r") as file:
             self.pagina_resultado_busca = file.read()
+            
+        with open("src/test/integration/fixtures/pagina_sem_cadernos.html", "r") as file:
+            self.pagina_sem_conteudo = file.read()
 
-        with open("src/test/integration/fixtures/pagina_integral_paginado.html", "r") as file:
+        with open(
+            "src/test/integration/fixtures/pagina_integral_paginado.html", "r"
+        ) as file:
             self.pagina_integral_paginado = file.read()
 
-        self.cadernos_de_testes = {
-            "1bdfe4baf9061c3667ded70d8f66142c": b"arquivo1",
-            "8eed470a9ac3c36ef139ece144537f46": b"arquiv2",
-            "91e3b288eab8d59598a52221296f8995": b"arquivo3",
-        }
         return super().setUp()
+
+    def test_run(self):
+        with patch.object(self.crawler, '_formata_data') as mock_formata_data, \
+             patch.object(self.crawler, '_obtem_url_integral') as mock_obtem_url_integral, \
+             patch.object(self.crawler, '_obtem_content') as mock_obtem_content, \
+             patch.object(self.crawler, '_gera_hashcode') as mock_gera_hashcode, \
+             patch.object(self.crawler, '_salva_cadernos') as mock_salva_cadernos:
+
+            mock_formata_data.return_value = {"dia": "29", "mes": "12", "ano": "2022"}
+            mock_obtem_url_integral.return_value = ["url1", "url2"]
+            mock_obtem_content.side_effect = lambda url: f"conteudo_{url}"
+            mock_gera_hashcode.side_effect = lambda conteudo: f"hash_{conteudo}"
+
+            self.crawler.run()
+
+        mock_formata_data.assert_called_once_with(self.data_de_teste)
+        mock_obtem_url_integral.assert_called_once()
+        mock_obtem_content.assert_has_calls([mock.call("url1"), mock.call("url2")])
+        mock_gera_hashcode.assert_has_calls([mock.call("conteudo_url1"), mock.call("conteudo_url2")])
+        mock_salva_cadernos.assert_called_once_with("src/Cadernos/2022/12/29/")
 
     def test_obtem_soup(self):
         soup_esperado = BeautifulSoup(self.pagina_resultado_busca, "html.parser")
@@ -59,7 +80,7 @@ class TestExtracao(unittest.TestCase):
                 url="https://www.python.org/", headers=self.head, timeout=60
             )
 
-    def test_obtem_url_acesso(self):
+    def test_obtem_url_acesso_lista_links(self):
         lista_esperada = [
             (
                 "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
@@ -78,11 +99,19 @@ class TestExtracao(unittest.TestCase):
         with patch(self.REQUESTS_GET) as mock_get:
             mock_get.return_value.content = self.pagina_resultado_busca
             lista_obtida = self.crawler._obtem_url_acesso()
+        self.assertEqual(lista_obtida, lista_esperada)
 
-        if lista_obtida:
-            self.assertEqual(lista_obtida, lista_esperada)
-        else:
-            self.assertEqual(lista_obtida, [])
+        mock_get.assert_called_once_with(
+            url=self.crawler.LINK_DE_BUSCA.format(data=self.data_de_teste),
+            headers=self.head,
+            timeout=60,
+        )
+
+    def test_obtem_url_acesso_lista_vazia(self):
+        with patch(self.REQUESTS_GET) as mock_get:
+            mock_get.return_value.content = self.pagina_sem_conteudo
+            lista_obtida = self.crawler._obtem_url_acesso()
+        self.assertEqual(lista_obtida, [])
 
         mock_get.assert_called_once_with(
             url=self.crawler.LINK_DE_BUSCA.format(data=self.data_de_teste),
@@ -112,12 +141,12 @@ class TestExtracao(unittest.TestCase):
         mock_get.assert_called()
 
     def test_obtem_url_integral_lista_vazia(self):
-        with patch.object(self.crawler, "_obtem_url_acesso") as mock_obtem_url_acesso:
-            mock_obtem_url_acesso.return_value = []
+        with patch(self.REQUESTS_GET) as mock_get:
+            mock_get.return_value.content = self.pagina_sem_conteudo
             url_integral_obtido = self.crawler._obtem_url_integral()
 
         self.assertEqual(url_integral_obtido, [])
-        mock_obtem_url_acesso.assert_called_once()
+        mock_get.assert_called_once()
 
     def test_salva_caderno(self):
         conteudo_esperado = b"conteudo do arquivo"
@@ -168,6 +197,3 @@ class TestExtracao(unittest.TestCase):
 
         self.crawler._gera_hashcode(conteudo_para_teste)
         self.assertDictEqual(self.crawler.dicionario, dicionario_esperado)
-
-
-# REALIZAR TESTES PARA RESULTADOS ALTERNATIVOS E FAZER TESTE DO RUN
