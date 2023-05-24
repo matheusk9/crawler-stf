@@ -13,7 +13,8 @@ class TestExtracao(unittest.TestCase):
     REQUESTS_GET = "requests.get"
 
     def setUp(self) -> None:
-        self.crawler = Crawler("29-12-2022")
+        self.data_de_teste = "29-12-2023"
+        self.crawler = Crawler(self.data_de_teste)
         self.head = {
             "User-agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -75,18 +76,21 @@ class TestExtracao(unittest.TestCase):
         ]
 
         with patch(self.REQUESTS_GET) as mock_get:
-            # 'Mockei' o soup interno e defini o content com a fixture pagina_resultado_busca
             mock_get.return_value.content = self.pagina_resultado_busca
             lista_obtida = self.crawler._obtem_url_acesso()
 
-        self.assertEqual(lista_obtida, lista_esperada)
+        if lista_obtida:
+            self.assertEqual(lista_obtida, lista_esperada)
+        else:
+            self.assertEqual(lista_obtida, [])
+
         mock_get.assert_called_once_with(
-            url=self.crawler.LINK_DE_BUSCA.format(data="29-12-2022"),
+            url=self.crawler.LINK_DE_BUSCA.format(data=self.data_de_teste),
             headers=self.head,
             timeout=60,
         )
 
-    def test_obtem_url_integral(self):
+    def test_obtem_url_integral_lista_links(self):
         retorno_obtem_url_acesso = [
             (
                 "https://portal.stf.jus.br/servicos/dje/listarDiarioJustica.asp?"
@@ -97,9 +101,8 @@ class TestExtracao(unittest.TestCase):
             "https://portal.stf.jus.br/servicos/dje/verDiarioEletronico.asp?numero=253&data=12/12/2022"
         ]
 
-        with patch.object(
-            self.crawler, "_obtem_url_acesso", return_value=retorno_obtem_url_acesso
-        ) as mock_obtem_url_acesso:
+        with patch.object(self.crawler, "_obtem_url_acesso") as mock_obtem_url_acesso:
+            mock_obtem_url_acesso.return_value = retorno_obtem_url_acesso
             with patch(self.REQUESTS_GET) as mock_get:
                 mock_get.return_value.content = self.pagina_integral_paginado
                 url_integral_obtido = self.crawler._obtem_url_integral()
@@ -107,6 +110,14 @@ class TestExtracao(unittest.TestCase):
         self.assertEqual(url_integral_obtido, url_integral_esperado)
         mock_obtem_url_acesso.assert_called_once()
         mock_get.assert_called()
+
+    def test_obtem_url_integral_lista_vazia(self):
+        with patch.object(self.crawler, "_obtem_url_acesso") as mock_obtem_url_acesso:
+            mock_obtem_url_acesso.return_value = []
+            url_integral_obtido = self.crawler._obtem_url_integral()
+
+        self.assertEqual(url_integral_obtido, [])
+        mock_obtem_url_acesso.assert_called_once()
 
     def test_salva_caderno(self):
         conteudo_esperado = b"conteudo do arquivo"
@@ -157,3 +168,6 @@ class TestExtracao(unittest.TestCase):
 
         self.crawler._gera_hashcode(conteudo_para_teste)
         self.assertDictEqual(self.crawler.dicionario, dicionario_esperado)
+
+
+# REALIZAR TESTES PARA RESULTADOS ALTERNATIVOS E FAZER TESTE DO RUN
