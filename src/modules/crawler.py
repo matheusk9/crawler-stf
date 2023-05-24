@@ -30,11 +30,11 @@ class Crawler:
         return self._data
 
     @property
-    def dicionario(self):
+    def dicionario(self) -> dict:
         """Metodo get."""
         return self._dicionario
 
-    def run(self):
+    def run(self) -> None:
         """Método responsavel pela execução do script."""
         data = self._formata_data(self.data_de_busca)
         diretorio = (
@@ -49,11 +49,13 @@ class Crawler:
         else:
             print("Não existem DJe na data informada!")
 
-    def _obtem_content(self, link):
+    def _obtem_content(self, link: str) -> object:
+        """Obtem conteudo do link passado por parametro"""
+
         response = requests.get(url=link, headers=self.HEADER, timeout=60)
         return response.content
 
-    def _obtem_soup(self, link=None):
+    def _obtem_soup(self, link=None) -> object:
         """Faz a requisicao do link passado por parametro.
 
         content = pega o HTML bruto.
@@ -66,7 +68,7 @@ class Crawler:
         soup = BeautifulSoup(content, "html.parser")
         return soup
 
-    def _obtem_url_acesso(self):
+    def _obtem_url_acesso(self) -> list:
         """Acesso a primeira pagina.
 
         Faz o request da primeira pagina e busca pela 'ul' no html.
@@ -96,14 +98,15 @@ class Crawler:
         finally:
             print("Processando...")
 
-    def _obtem_url_integral(self):
+    def _obtem_url_integral(self) -> list:
         """Acesso a pagina de PDFs integrais e paginados.
 
         Busca apenas links de PDFs integrais e armazena na lista url_pdf_integral.
         """
+
         lista_de_links_ul = self._obtem_url_acesso()
         if not lista_de_links_ul:
-            return False
+            return []
 
         url_pdf_integral = []
         for link in lista_de_links_ul:
@@ -119,15 +122,15 @@ class Crawler:
                     )
         return url_pdf_integral
 
-    def _gera_hashcode(self, conteudo):
+    def _gera_hashcode(self, conteudo: object) -> None:
         """Faz a requisição do link passado por parâmetro.
 
-        Gera os códigos MD5 e os retorna em um dicionário com seus respectivos links.
+        Gera os códigos MD5 e os retorna em um dicionário com seus respectivos conteudos.
         """
         md5_hash = hashlib.md5(conteudo).hexdigest()
         self.dicionario[md5_hash] = conteudo
 
-    def _salva_cadernos(self, diretorio):
+    def _salva_cadernos(self, diretorio: str) -> None:
         """Salva os cadernos em diretórios com suas respectivas datas.
 
         Método 'makedirs()' é o responsável pela criação dos diretórios que automaticamente
@@ -145,12 +148,12 @@ class Crawler:
                     file.write(conteudo_do_caderno)
                     print(f"O caderno {nome_do_caderno} foi salvo com sucesso")
 
-    def _formata_data(self, data):
+    def _formata_data(self, data: str) -> dict:
         """Formata a data de busca.
 
         Remove uma cadeia de caracteres especiais utilizando regex e 'splita'.
         Popula um dicionario com as chaves dia, mes e ano.
-        A data deve ter a seguinte formatação: dia-mês-ano
+        A data deve ter a seguinte formatação: DD-MM-AAAA
         """
 
         data_formatada = re.split(r"[-/\. ]", data)
